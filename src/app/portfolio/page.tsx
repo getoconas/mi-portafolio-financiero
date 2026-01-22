@@ -23,7 +23,7 @@ export default function DarkDashboard() {
     { 
       ticker: 'BHIP', 
       name: 'Banco Hipotecario', 
-      logo: 'https://e7.pngegg.com/pngimages/418/143/png-clipart-banco-hipotecario-s-a-bank-buenos-aires-finance-bank-blue-building-thumbnail.png',
+      logo: 'https://www.hipotecario.com.ar/wp-content/uploads/2019/07/logo-hipotecario.svg',
       quantity: 1500, 
       avgPurchasePrice: 1100, 
       currentPrice: 1350 
@@ -31,7 +31,7 @@ export default function DarkDashboard() {
     { 
       ticker: 'SAMI', 
       name: 'San Miguel', 
-      logo: 'https://www.agroislas.com/wp-content/uploads/2021/05/logo-san-miguel.png',
+      logo: 'https://images.squarespace-cdn.com/content/v1/63eea45262584c3023fb22ed/ad4f4f34-d1b3-4446-bf6a-c001270509bf/summer+San+Miguel+Marca+Logo+Verde.png?format=1500w',
       quantity: 800, 
       avgPurchasePrice: 950, 
       currentPrice: 920 
