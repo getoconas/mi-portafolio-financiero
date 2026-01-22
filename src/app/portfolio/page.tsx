@@ -90,50 +90,69 @@ export default function DarkDashboard() {
           <div className="p-6 border-b border-slate-800">
             <h3 className="text-lg font-semibold text-white">Detalle de Activos</h3>
           </div>
-          <Table>
-            <TableHead className="bg-slate-900/60">
-              <TableRow className="border-b border-slate-800">
-                <TableHeaderCell className="text-slate-400">Activo</TableHeaderCell>
-                <TableHeaderCell className="text-slate-400 text-right">Cant.</TableHeaderCell>
-                <TableHeaderCell className="text-slate-400 text-right">Compra Avg.</TableHeaderCell>
-                <TableHeaderCell className="text-slate-400 text-right">Precio Actual</TableHeaderCell>
-                <TableHeaderCell className="text-slate-400 text-right">Resultado</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {myAssets.map((asset) => {
-                const profit = (asset.currentPrice - asset.avgPurchasePrice) * asset.quantity;
-                const isPos = profit >= 0;
 
-                return (
-                  <TableRow key={asset.ticker} className="hover:bg-slate-800/30 transition-colors border-b border-slate-800/50">
-                    <TableCell className="flex items-center gap-4 py-5">
-                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm">
-                        <img src={asset.logo} alt={asset.ticker} className="object-contain" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {myAssets.map((asset) => {
+              const profit = (asset.currentPrice - asset.avgPurchasePrice) * asset.quantity;
+              const isPos = profit >= 0;
+              const totalAssetValue = asset.currentPrice * asset.quantity;
+
+              return (
+                <Card 
+                  key={asset.ticker} 
+                  className="bg-slate-900/40 border-slate-800 ring-0 shadow-xl hover:bg-slate-900/60 transition-all group overflow-hidden relative"
+                >
+                  {/* Gradiente de color según el rendimiento */}
+                  <div className={`absolute top-0 right-0 w-24 h-24 blur-3xl opacity-10 rounded-full -mr-10 -mt-10 ${isPos ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+
+                  <div className="flex flex-col h-full justify-between space-y-6">
+                    {/* Header de la Card: Logo y Ticker */}
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2 shadow-inner">
+                          <img src={asset.logo} alt={asset.ticker} className="object-contain" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-lg leading-tight">{asset.ticker}</h4>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">{asset.name}</p>
+                        </div>
                       </div>
+                      <Badge color={isPos ? "emerald" : "rose"} size="xs" className="bg-opacity-10">
+                        {isPos ? '↑' : '↓'} {((asset.currentPrice / asset.avgPurchasePrice - 1) * 100).toFixed(2)}%
+                      </Badge>
+                    </div>
+
+                    {/* Datos de cantidad y precio */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-white font-bold leading-none">{asset.ticker}</div>
-                        <div className="text-[11px] text-slate-500 mt-1 uppercase font-medium">{asset.name}</div>
+                        <Text className="text-[10px] text-slate-500 uppercase font-bold">Tenencia</Text>
+                        <p className="text-white font-medium">{asset.quantity} <span className="text-[10px] text-slate-400 font-normal">unidades</span></p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right text-slate-300 font-medium">{asset.quantity}</TableCell>
-                    <TableCell className="text-right text-slate-400 font-mono text-xs">{fmt(asset.avgPurchasePrice)}</TableCell>
-                    <TableCell className="text-right text-white font-mono font-bold">{fmt(asset.currentPrice)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className={`font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {fmt(profit)}
+                      <div className="text-right">
+                        <Text className="text-[10px] text-slate-500 uppercase font-bold">Valuación</Text>
+                        <p className="text-white font-mono font-bold">{fmt(totalAssetValue)}</p>
                       </div>
-                      <div className={`text-[10px] ${isPos ? 'text-emerald-500/60' : 'text-rose-500/60'}`}>
-                        {((asset.currentPrice / asset.avgPurchasePrice - 1) * 100).toFixed(2)}%
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Card>
+                    </div>
 
+                    {/* Resultado económico */}
+                    <div className={`pt-4 border-t border-slate-800/50 flex justify-between items-end`}>
+                      <div>
+                        <Text className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">PPC: <span className="text-slate-400 font-mono italic">{fmt(asset.avgPurchasePrice)}</span></Text>
+                        <Text className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Actual: <span className="text-slate-400 font-mono italic">{fmt(asset.currentPrice)}</span></Text>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-lg font-bold leading-none ${isPos ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {isPos ? '+' : ''}{fmt(profit)}
+                        </p>
+                        <Text className="text-[9px] text-slate-500 mt-1 uppercase font-semibold">Ganancia / Pérdida</Text>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </Card>
       </div>
     </div>
   );
