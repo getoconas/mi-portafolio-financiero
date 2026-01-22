@@ -1,9 +1,8 @@
 'use client';
 
-import React from 'react';
 import { Card, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Badge } from "@tremor/react";
 
-// --- 1. TIPADO (Para que TypeScript no moleste) ---
+/* Tipado de datos */
 interface Asset {
   ticker: string;
   name: string;
@@ -13,13 +12,13 @@ interface Asset {
   currentPrice: number;     // Precio actual de mercado (ARS)
 }
 
-// --- 2. AYUDANTES DE FORMATO ---
+/* Formateador de moneda */
 const fmt = (val: number) => 
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(val);
 
 export default function DarkDashboard() {
   
-  // --- 3. TUS DATOS (Modificá estos valores a gusto) ---
+  // Informaciòn del portafolio
   const myAssets: Asset[] = [
     { 
       ticker: 'BHIP', 
@@ -47,23 +46,24 @@ export default function DarkDashboard() {
     }
   ];
 
-  // --- 4. LÓGICA DE CÁLCULO ---
+  /* Calculos */
   const totalInvested = myAssets.reduce((acc, a) => acc + (a.quantity * a.avgPurchasePrice), 0);
   const currentTotalValue = myAssets.reduce((acc, a) => acc + (a.quantity * a.currentPrice), 0);
   const totalProfitLoss = currentTotalValue - totalInvested;
   const percentageGain = (totalProfitLoss / totalInvested) * 100;
 
+  /* Render */
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200 p-6 md:p-12 font-sans">
       <div className="max-w-6xl mx-auto space-y-10">
         
-        {/* HEADER */}
+        {/* Encabezado */}
         <header>
           <h1 className="text-3xl font-bold text-white tracking-tight">Mi Portafolio</h1>
           <p className="text-slate-500 mt-1">Resumen de activos y rendimiento en tiempo real</p>
         </header>
 
-        {/* MÉTRICAS DE PATRIMONIO */}
+        {/* Patrimonio */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-slate-900/50 border-slate-800 ring-0 shadow-xl">
             <Text className="text-slate-400 uppercase text-[10px] tracking-widest font-bold">Patrimonio Actual</Text>
@@ -85,7 +85,7 @@ export default function DarkDashboard() {
           </Card>
         </div>
 
-        {/* LISTADO DE ACTIVOS */}
+        {/* Activos */}
         <Card className="bg-slate-900/40 border-slate-800 ring-0 shadow-2xl p-0 overflow-hidden">
           <div className="p-6 border-b border-slate-800">
             <h3 className="text-lg font-semibold text-white">Detalle de Activos</h3>
