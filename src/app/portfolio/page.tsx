@@ -1,176 +1,140 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { myAssets, myTransactions } from "@/lib/mock-data";
-import { formatCurrency, formatPercent } from "@/types/utils";
-import { Card, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Text, Title, Metric, DonutChart, Legend } from "@tremor/react";
+import React from 'react';
+import { Card, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Badge } from "@tremor/react";
 
-export default function PortfolioPage() {
-  // dolar
-  const [dolarCCL, setDolarCCL] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
+// --- 1. TIPADO (Para que TypeScript no moleste) ---
+interface Asset {
+  ticker: string;
+  name: string;
+  logo: string;
+  quantity: number;
+  avgPurchasePrice: number; // Precio promedio de compra (ARS)
+  currentPrice: number;     // Precio actual de mercado (ARS)
+}
 
-  // Hook para buscar el precio del dólar al cargar la página
-  useEffect(() => {
-    fetch("https://dolarapi.com/v1/dolares/contadoconliqui")
-      .then(res => res.json())
-      .then(data => {
-        setDolarCCL(data.venta);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error cargando el dólar CCL: ", err);
-        setLoading(false);
-      })
-  })
+// --- 2. AYUDANTES DE FORMATO ---
+const fmt = (val: number) => 
+  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(val);
 
-
-  // Lógica: Agrupar transacciones por ticker para calcular totales
-  // En una App real, esto lo haría una función en un 'hook' o en el backend
-  const portfolioData = myAssets.map(asset => {
-  const transactions = myTransactions.filter(t => t.ticker === asset.ticker);
+export default function DarkDashboard() {
   
-  const totalQty = transactions.reduce((acc, t) => acc + t.quantity, 0);
-  
-  // Calculamos el costo promedio en dólares
-  const totalInvestedUsd = transactions.reduce((acc, t) => {
-    return acc + (t.quantity * t.priceUsd); 
-  }, 0);
-
-  // Precio actual (Hardcodeado para probar, simulando que viene de una API)
-  const currentPriceUsd = asset.ticker === 'BHIP' ? 1.45 : 0.95; 
-  
-  const marketValueUsd = totalQty * currentPriceUsd;
-  const avgPriceUsd = totalQty > 0 ? totalInvestedUsd / totalQty : 0;
-  const pnlPercentage = avgPriceUsd > 0 ? ((currentPriceUsd / avgPriceUsd) - 1) * 100 : 0;
-  //const totalPortfolioValue = portfolioData.reduce((acc, item) => acc + item.marketValueUsd, 0);
-
-  return {
-    ...asset,
-    totalQty,
-    avgPriceUsd,
-    marketValueUsd,
-    pnlPercentage
-  };
-});
-
-  const totalPortfolioValue = portfolioData.reduce((acc, item) => acc + item.marketValueUsd, 0);
-  const totalProfitUsd = portfolioData.reduce((acc, item) => acc + (item.marketValueUsd - (item.totalQty * item.avgPriceUsd)), 0);
-
-  // 1. Agrupamos los datos para el gráfico
-  const sectorData = portfolioData.reduce((acc, item) => {
-    const existingSector = acc.find(s => s.name === item.sector);
-    if (existingSector) {
-      existingSector.value += item.marketValueUsd;
-    } else {
-      acc.push({ name: item.sector, value: item.marketValueUsd });
+  // --- 3. TUS DATOS (Modificá estos valores a gusto) ---
+  const myAssets: Asset[] = [
+    { 
+      ticker: 'BHIP', 
+      name: 'Banco Hipotecario', 
+      logo: 'https://e7.pngegg.com/pngimages/418/143/png-clipart-banco-hipotecario-s-a-bank-buenos-aires-finance-bank-blue-building-thumbnail.png',
+      quantity: 1500, 
+      avgPurchasePrice: 1100, 
+      currentPrice: 1350 
+    },
+    { 
+      ticker: 'SAMI', 
+      name: 'San Miguel', 
+      logo: 'https://www.agroislas.com/wp-content/uploads/2021/05/logo-san-miguel.png',
+      quantity: 800, 
+      avgPurchasePrice: 950, 
+      currentPrice: 920 
+    },
+    { 
+      ticker: 'VIST', 
+      name: 'Vista Energy', 
+      logo: 'https://vistaenergy.com/favicon.ico',
+      quantity: 5, 
+      avgPurchasePrice: 42000, 
+      currentPrice: 48500 
     }
-    return acc;
-  }, [] as { name: string, value: number }[]);
+  ];
+
+  // --- 4. LÓGICA DE CÁLCULO ---
+  const totalInvested = myAssets.reduce((acc, a) => acc + (a.quantity * a.avgPurchasePrice), 0);
+  const currentTotalValue = myAssets.reduce((acc, a) => acc + (a.quantity * a.currentPrice), 0);
+  const totalProfitLoss = currentTotalValue - totalInvested;
+  const percentageGain = (totalProfitLoss / totalInvested) * 100;
 
   return (
-    <main className="p-8 bg-indigo-800 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8">
-          <Title className="text-2xl">Mi Portfolio de Inversiones</Title>
-          <Text>Resumen detallado de activos y rendimientos</Text>
+    <div className="min-h-screen bg-[#020617] text-slate-200 p-6 md:p-12 font-sans">
+      <div className="max-w-6xl mx-auto space-y-10">
+        
+        {/* HEADER */}
+        <header>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Mi Portafolio</h1>
+          <p className="text-slate-500 mt-1">Resumen de activos y rendimiento en tiempo real</p>
         </header>
 
-        {/* Fila de Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card decoration="top" decorationColor="blue">
-            <Text>Valor Total Portafolio</Text>
-            <Metric>{formatCurrency(totalPortfolioValue, 'USD')}</Metric>
-          </Card>
-          
-          <Card decoration="top" decorationColor="emerald">
-            <Text>Ganancia/Pérdida Total</Text>
-            <Metric>+ US$ 1.240</Metric> {/* Esto luego lo calcularemos dinámico */}
+        {/* MÉTRICAS DE PATRIMONIO */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-slate-900/50 border-slate-800 ring-0 shadow-xl">
+            <Text className="text-slate-400 uppercase text-[10px] tracking-widest font-bold">Patrimonio Actual</Text>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-white">{fmt(currentTotalValue)}</span>
+            </div>
           </Card>
 
-          <Card decoration="top" decorationColor="amber">
-            <Text>Dólar CCL (Hoy)</Text>
-            <Metric>
-              {loading ? "Cargando..." : formatCurrency(dolarCCL, 'ARS')}
-            </Metric>
+          <Card className="bg-slate-900/50 border-slate-800 ring-0 shadow-xl">
+            <Text className="text-slate-400 uppercase text-[10px] tracking-widest font-bold">Ganancia / Pérdida Total</Text>
+            <div className="mt-2 flex items-center gap-3">
+              <span className={`text-3xl font-bold ${totalProfitLoss >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {fmt(totalProfitLoss)}
+              </span>
+              <Badge color={totalProfitLoss >= 0 ? "emerald" : "rose"} size="xs">
+                {totalProfitLoss >= 0 ? '↑' : '↓'} {percentageGain.toFixed(2)}%
+              </Badge>
+            </div>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* El gráfico ocupa 1 columna */}
-          <Card className="lg:col-span-1">
-            <Title>Distribución por Sector</Title>
-            <DonutChart
-              className="mt-6 h-40"
-              data={sectorData}
-              category="value"
-              index="name"
-              colors={["blue", "cyan", "indigo", "violet", "slate"]}
-              valueFormatter={(number) => formatCurrency(number, 'USD')}
-            />
-            <Legend
-              className="mt-3"
-              categories={sectorData.map(s => s.name)}
-              colors={["blue", "cyan", "indigo", "violet", "slate"]}
-            />
-          </Card>
-
-          {/* Aquí podés poner otro gráfico o más métricas en las otras 2 columnas */}
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card decoration="top" decorationColor="blue">
-                <Text>Valor Total</Text>
-                <Metric>{formatCurrency(totalPortfolioValue, 'USD')}</Metric>
-              </Card>
-              <Card decoration="top" decorationColor="emerald">
-                <Text>Ganancia Total (USD)</Text>
-                <Metric>{formatCurrency(totalProfitUsd, 'USD')}</Metric>
-              </Card>
+        {/* LISTADO DE ACTIVOS */}
+        <Card className="bg-slate-900/40 border-slate-800 ring-0 shadow-2xl p-0 overflow-hidden">
+          <div className="p-6 border-b border-slate-800">
+            <h3 className="text-lg font-semibold text-white">Detalle de Activos</h3>
           </div>
-        </div>
-
-        {/* Tabla de Posiciones */}
-        <Card className="mt-6">
           <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Activo</TableHeaderCell>
-                <TableHeaderCell>Sector</TableHeaderCell>
-                <TableHeaderCell>Región</TableHeaderCell>
-                <TableHeaderCell className="text-right">Cantidad</TableHeaderCell>
-                <TableHeaderCell className="text-right">Costo Promedio</TableHeaderCell>
-                <TableHeaderCell className="text-right">Valor Mercado</TableHeaderCell>
-                <TableHeaderCell className="text-right">Rendimiento</TableHeaderCell>
+            <TableHead className="bg-slate-900/60">
+              <TableRow className="border-b border-slate-800">
+                <TableHeaderCell className="text-slate-400">Activo</TableHeaderCell>
+                <TableHeaderCell className="text-slate-400 text-right">Cant.</TableHeaderCell>
+                <TableHeaderCell className="text-slate-400 text-right">Compra Avg.</TableHeaderCell>
+                <TableHeaderCell className="text-slate-400 text-right">Precio Actual</TableHeaderCell>
+                <TableHeaderCell className="text-slate-400 text-right">Resultado</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {portfolioData.map((item) => (
-                <TableRow key={item.ticker}>
-                  <TableCell>
-                    <div className="font-bold text-slate-900">{item.ticker}</div>
-                    <div className="text-xs text-slate-500">{item.name}</div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge color="slate">{item.sector}</Badge>
-                  </TableCell>
-                  <TableCell>{item.region}</TableCell>
-                  <TableCell className="text-right">{item.totalQty}</TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(item.avgPriceUsd, 'USD')} 
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatCurrency(item.marketValueUsd, 'USD')}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className={item.pnlPercentage >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold"}>
-                      {formatPercent(item.pnlPercentage)}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {myAssets.map((asset) => {
+                const profit = (asset.currentPrice - asset.avgPurchasePrice) * asset.quantity;
+                const isPos = profit >= 0;
+
+                return (
+                  <TableRow key={asset.ticker} className="hover:bg-slate-800/30 transition-colors border-b border-slate-800/50">
+                    <TableCell className="flex items-center gap-4 py-5">
+                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1.5 shadow-sm">
+                        <img src={asset.logo} alt={asset.ticker} className="object-contain" />
+                      </div>
+                      <div>
+                        <div className="text-white font-bold leading-none">{asset.ticker}</div>
+                        <div className="text-[11px] text-slate-500 mt-1 uppercase font-medium">{asset.name}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right text-slate-300 font-medium">{asset.quantity}</TableCell>
+                    <TableCell className="text-right text-slate-400 font-mono text-xs">{fmt(asset.avgPurchasePrice)}</TableCell>
+                    <TableCell className="text-right text-white font-mono font-bold">{fmt(asset.currentPrice)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className={`font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {fmt(profit)}
+                      </div>
+                      <div className={`text-[10px] ${isPos ? 'text-emerald-500/60' : 'text-rose-500/60'}`}>
+                        {((asset.currentPrice / asset.avgPurchasePrice - 1) * 100).toFixed(2)}%
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Card>
+
       </div>
-    </main>
+    </div>
   );
 }
