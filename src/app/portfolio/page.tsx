@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Badge } from "@tremor/react";
+import { Card, Text, Badge } from "@tremor/react";
 
 /* Tipado de datos */
 interface Asset {
