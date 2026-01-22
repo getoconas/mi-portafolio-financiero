@@ -37,9 +37,9 @@ export default function DarkDashboard() {
       currentPrice: 920 
     },
     { 
-      ticker: 'VIST', 
-      name: 'Vista Energy', 
-      logo: 'https://vistaenergy.com/favicon.ico',
+      ticker: 'YPF', 
+      name: 'YPF', 
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Logo_de_YPF.svg/500px-Logo_de_YPF.svg.png',
       quantity: 5, 
       avgPurchasePrice: 42000, 
       currentPrice: 48500 
@@ -47,10 +47,10 @@ export default function DarkDashboard() {
   ];
 
   /* Calculos */
-  const totalInvested = myAssets.reduce((acc, a) => acc + (a.quantity * a.avgPurchasePrice), 0);
-  const currentTotalValue = myAssets.reduce((acc, a) => acc + (a.quantity * a.currentPrice), 0);
-  const totalProfitLoss = currentTotalValue - totalInvested;
-  const percentageGain = (totalProfitLoss / totalInvested) * 100;
+  const totalInvested = myAssets.reduce((acc, a) => acc + (a.quantity * a.avgPurchasePrice), 0); // Total invertido
+  const currentTotalValue = myAssets.reduce((acc, a) => acc + (a.quantity * a.currentPrice), 0); // Valor actual del portafolio
+  const totalProfitLoss = currentTotalValue - totalInvested; // Ganancia o perdida total
+  const percentageGain = (totalProfitLoss / totalInvested) * 100; // Porcentaje de ganancia o perdida
 
   /* Render */
   return (
